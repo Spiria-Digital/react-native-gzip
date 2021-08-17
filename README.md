@@ -1,41 +1,70 @@
 # react-native-gzip
-解压缩gzip和tar格式文件
-- IOS实现基于[NVHTarGzip](https://github.com/nvh/NVHTarGzip)
-- Android实现基于[CompressorStreamFactory](https://commons.apache.org/proper/commons-compress/apidocs/org/apache/commons/compress/compressors/CompressorStreamFactory.html)和[ArchiveStreamFactory](https://commons.apache.org/proper/commons-compress/javadocs/api-1.18/org/apache/commons/compress/archivers/ArchiveStreamFactory.html)
 
-## 安装
+Unzip/Zip gzip and tar format files
+
+- IOS implementation is based on [NVHTarGzipV2](https://github.com/fallending/NVHTarGzipV2)
+- Android implementation is based on [CompressorStreamFactory](https://commons.apache.org/proper/commons-compress/apidocs/org/apache/commons/compress/compressors/CompressorStreamFactory.html)和[ArchiveStreamFactory](https://commons.apache.org/proper/commons-compress/javadocs/api-1.18/org/apache/commons/compress/archivers/ArchiveStreamFactory.html)
+
+## Install
 
 ```
 npm install @fengweichong/react-native-gzip --save
 
 ios -> pod install
 ```
-## 使用
+
+## Decompression Usage
+
 ```javascript
-import Gzip from '@fengweichong/react-native-gzip';
+import Gzip from "@fengweichong/react-native-gzip";
 
-const sourcePath = `${PATH}/xxx.gz`
-const targetPath = `${PATH}/xxx`
+const sourcePath = `${PATH}/xxx.gz`;
+const targetPath = `${PATH}/xxx`;
+const force = true;
 
-// 解压缩tar
-Gzip.unTar(sourcePath, targetPath, true).then((res)=>{
-    console.log(res)
-})
+// Decompress tar
+Gzip.unTar(sourcePath, targetPath, force).then((res) => {
+  console.log(res);
+});
 
-// 解压缩gzip
-Gzip.unGzip(sourcePath, targetPath, true).then((res)=>{
-    console.log(res)
-})
+// Decompress gzip
+Gzip.unGzip(sourcePath, targetPath, force).then((res) => {
+  console.log(res);
+});
 
-// 解压缩gzip和tar
-Gzip.unGzipTar(sourcePath, targetPath, true).then((res)=>{
-    console.log(res)
-})
+// Decompress gzip and tar
+Gzip.unGzipTar(sourcePath, targetPath, force).then((res) => {
+  console.log(res);
+});
 ```
-### 参数
-|  名称   | 说明  |  会否必须  |
-|  ----  | ----  |  ----  |
-| sourcePath  | 目标文件地址 |  true  |
-| targetPath  | 解压目标地址 |  true  |
-| force  | 是否覆盖目标地址 |  true  |
 
+### Parameter
+
+| Name       | Description                                     | Mandatory |
+| ---------- | ----------------------------------------------- | --------- |
+| sourcePath | Target file address (without file://)           | true      |
+| targetPath | Unzip the destination address (without file://) | true      |
+| force      | Whether to overwrite the target address         | true      |
+
+## Compression Usage
+
+```javascript
+import Gzip from "@fengweichong/react-native-gzip";
+
+const sourcePath = `${PATH}/xxx`;
+const targetPath = `${PATH}/xxx.tar.gz`;
+const force = true;
+
+// Compress content of sourcePath toe .tar.gz
+Gzip.gzipTar(sourcePath, targetPath, force).then((res) => {
+  console.log(res);
+});
+```
+
+### Parameter
+
+| Name       | Description                                                  | Mandatory |
+| ---------- | ------------------------------------------------------------ | --------- |
+| sourcePath | Content of this directory will be compress (without file://) | true      |
+| targetPath | The target file location (without file://)                   | true      |
+| force      | Whether to overwrite the target address                      | true      |

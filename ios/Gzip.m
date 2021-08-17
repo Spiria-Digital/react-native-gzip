@@ -84,6 +84,38 @@ RCT_REMAP_METHOD(unGzipTar,
     }];
 }
 
+RCT_REMAP_METHOD(gzipTar,
+                 gzipTar: (NSString *) source
+                 toPath: (NSString *) target
+                 force: (BOOL) force
+                 resolver: (RCTPromiseResolveBlock)resolve
+                 rejecter: (RCTPromiseRejectBlock)reject)
+{
+    if(![self checkDir:source target:target force:force]) {
+        reject(@"-2", @"error", nil);
+        return;
+    };
+    NSString *temporaryPath = [self temporaryFilePathForPath:source];
+    [[NVHTarGzip sharedInstance] tarFileAtPath:source toPath:temporaryPath completion:^(NSError* tarError) {
+        if (tarError != nil) {
+            reject(@"-2", @"tar error", nil);
+            return;
+        }
+
+       [[NVHTarGzip sharedInstance] gzipFileAtPath:temporaryPath toPath:target completion:^(NSError *gzipError) {
+            NSError* error = nil;
+            [[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:&error];
+            if (gzipError != nil) {
+                error = gzipError;
+                reject(@"-2", @"gzip error", nil);
+                return;
+            }
+            resolve(@{@"path": target});
+            return;
+        }];
+    }];
+}
+
 - (Boolean)checkDir:(NSString *)source
                  target:(NSString *)target
                   force:(Boolean)force {
