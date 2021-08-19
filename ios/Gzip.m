@@ -95,7 +95,7 @@ RCT_REMAP_METHOD(gzipTar,
         reject(@"-2", @"error", nil);
         return;
     };
-    NSString *temporaryPath = [self temporaryFilePathForPath:source];
+    NSString *temporaryPath = [self temporaryFilePathForPath:target];
     [[NVHTarGzip sharedInstance] tarFileAtPath:source toPath:temporaryPath completion:^(NSError* tarError) {
         if (tarError != nil) {
             reject(@"-2", @"tar error", nil);
@@ -103,6 +103,41 @@ RCT_REMAP_METHOD(gzipTar,
         }
 
        [[NVHTarGzip sharedInstance] gzipFileAtPath:temporaryPath toPath:target completion:^(NSError *gzipError) {
+            NSError* error = nil;
+            [[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:&error];
+            if (gzipError != nil) {
+                error = gzipError;
+                reject(@"-2", @"gzip error", nil);
+                return;
+            }
+            resolve(@{@"path": target});
+            return;
+        }];
+    }];
+}
+
+
+RCT_REMAP_METHOD(gzipTarMultiplePaths,
+                 gzipTarMultiplePaths: (NSArray <NSString *> *) source
+                 toPath: (NSString *) target
+                 force: (BOOL) force
+                 resolver: (RCTPromiseResolveBlock)resolve
+                 rejecter: (RCTPromiseRejectBlock)reject)
+{
+    if(![self checkDir:source.firstObject target:target force:force]) {
+        reject(@"-2", @"error", nil);
+        return;
+    };
+
+    NSString *temporaryPath = [self temporaryFilePathForPath:target];
+    NVHTarFileChild *tarFile = [[NVHTarFileChild alloc] initWithPath:temporaryPath];
+    [tarFile packFilesAndDirectoriesAtPath:source completion:^(NSError *tarError) {
+        if (tarError != nil) {
+            reject(@"-2", @"tar error", nil);
+            return;
+        }
+        
+        [[NVHTarGzip sharedInstance] gzipFileAtPath:temporaryPath toPath:target completion:^(NSError *gzipError) {
             NSError* error = nil;
             [[NSFileManager defaultManager] removeItemAtPath:temporaryPath error:&error];
             if (gzipError != nil) {

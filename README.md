@@ -52,19 +52,26 @@ Gzip.unGzipTar(sourcePath, targetPath, force).then((res) => {
 import Gzip from "@fengweichong/react-native-gzip";
 
 const sourcePath = `${PATH}/xxx`;
+const multipleSourcePaths = [`${PATH}/xxx1`, `${PATH}/xxx2`, `${PATH}/file1.mp4`];
 const targetPath = `${PATH}/xxx.tar.gz`;
 const force = true;
 
-// Compress content of sourcePath toe .tar.gz
+// Compress content of sourcePath to .tar.gz
 Gzip.gzipTar(sourcePath, targetPath, force).then((res) => {
+  console.log(res);
+});
+
+// Compress content of sourcePath to .tar.gz
+Gzip.gzipTarMultiplePaths(multipleSourcePaths, targetPath, force).then((res) => {
   console.log(res);
 });
 ```
 
 ### Parameter
 
-| Name       | Description                                                  | Mandatory |
-| ---------- | ------------------------------------------------------------ | --------- |
-| sourcePath | Content of this directory will be compress (without file://) | true      |
-| targetPath | The target file location (without file://)                   | true      |
-| force      | Whether to overwrite the target address                      | true      |
+| Name                | Description                                                    | Mandatory                       |
+| ------------------- | -------------------------------------------------------------- | ------------------------------- |
+| sourcePath          | Content of this directory will be compress (without file://)   | true (for gzipTar)              |
+| multipleSourcePaths | The directories and files will be compressed (without file://) | true (for gzipTarMultiplePaths) |
+| targetPath          | The target file location (without file://)                     | true                            |
+| force               | Whether to overwrite the target address                        | true                            |

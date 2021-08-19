@@ -8,6 +8,7 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
 
 import java.io.File;
@@ -15,6 +16,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import java.io.BufferedInputStream;
 
@@ -165,7 +168,6 @@ public class GzipModule extends ReactContextBaseJavaModule {
 
         TarArchiveOutputStream tarOs = null;
         try {
-            // Using input name to create output name
             FileOutputStream fos = new FileOutputStream(target);
             GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
             tarOs = new TarArchiveOutputStream(gos);
@@ -187,7 +189,48 @@ public class GzipModule extends ReactContextBaseJavaModule {
         promise.resolve(map);
     }
 
-    private void addFilesToTarGZ(String filePath, String parent, TarArchiveOutputStream tarArchive, Boolean isFirstParent) throws IOException {
+    @ReactMethod
+    public void gzipTarMultiplePaths(ReadableArray source, String target, Boolean force, Promise promise) {
+        List<String> paths = new ArrayList<>();
+        File targetFile = new File(target);
+        for (int i = 0; i < source.size(); i++) {
+            String path = source.getString(i);
+            if (path != null) {
+                File pathFile = new File(path);
+                if(!checkDir(pathFile, targetFile, force, false)){
+                    promise.reject("-2", "error");
+                    return;
+                }
+                paths.add(path);
+            }
+        }
+
+        TarArchiveOutputStream tarOs = null;
+        try {
+            FileOutputStream fos = new FileOutputStream(target);
+            GZIPOutputStream gos = new GZIPOutputStream(new BufferedOutputStream(fos));
+            tarOs = new TarArchiveOutputStream(gos);
+            for (int i = 0; i < paths.size(); i++) {
+                addFilesToTarGZ(paths.get(i), "", tarOs, false);
+            }
+        } catch (IOException e) {
+            promise.reject("-2", e.getMessage());
+            return;
+        }finally{
+            try {
+                tarOs.close();
+            } catch (IOException e) {
+                promise.reject("-2", e.getMessage());
+                return;
+            }
+        }
+
+        WritableMap map = Arguments.createMap();
+        map.putString("path", targetFile.getAbsolutePath());
+        promise.resolve(map);
+    }
+
+    private void addFilesToTarGZ(String filePath, String parent, TarArchiveOutputStream tarArchive, Boolean hideFirstLevel) throws IOException {
         File file = new File(filePath);
         if(file.isFile()){
             tarArchive.putArchiveEntry(new TarArchiveEntry(file, parent + file.getName()));
@@ -200,7 +243,7 @@ public class GzipModule extends ReactContextBaseJavaModule {
         }else if(file.isDirectory()){
             String entryName = "";
             //ignore first parent directory
-            if(!isFirstParent){
+            if(!hideFirstLevel){
                 entryName = parent + file.getName();
                 tarArchive.putArchiveEntry(new TarArchiveEntry(file, entryName));
                 tarArchive.closeArchiveEntry();
@@ -208,7 +251,7 @@ public class GzipModule extends ReactContextBaseJavaModule {
 
             // for files in the directories
             for(File f : file.listFiles()){
-                String newParent = entryName + (!isFirstParent ? File.separator : "");
+                String newParent = entryName + (!hideFirstLevel ? File.separator : "");
                 // recursively call the method for all the subdirectories
                 addFilesToTarGZ(f.getAbsolutePath(), newParent, tarArchive, false);
             }
