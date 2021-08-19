@@ -56,12 +56,12 @@ const multipleSourcePaths = [`${PATH}/xxx1`, `${PATH}/xxx2`, `${PATH}/file1.mp4`
 const targetPath = `${PATH}/xxx.tar.gz`;
 const force = true;
 
-// Compress content of sourcePath to .tar.gz
+// Compress content of sourcePath to a single .tar.gz
 Gzip.gzipTar(sourcePath, targetPath, force).then((res) => {
   console.log(res);
 });
 
-// Compress content of sourcePath to .tar.gz
+// Compress multiple directories/files to a single .tar.gz
 Gzip.gzipTarMultiplePaths(multipleSourcePaths, targetPath, force).then((res) => {
   console.log(res);
 });
