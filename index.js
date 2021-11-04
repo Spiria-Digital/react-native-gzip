@@ -4,7 +4,7 @@ const { Gzip } = NativeModules;
 
 const normalizeFilePath = (path) => (path.startsWith("file://") ? path.slice(7) : path);
 
-export default class Gzip {
+export default class {
   static unTar(source, target, force) {
     return Gzip.unTar(normalizeFilePath(source), normalizeFilePath(target), force);
   }
